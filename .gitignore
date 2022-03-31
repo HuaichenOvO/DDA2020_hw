@@ -1,0 +1,7 @@
+/venv/
+/prob/
+
+*.txt
+*.pdf
+
+!*.py
