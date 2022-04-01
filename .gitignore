@@ -3,5 +3,6 @@
 
 *.txt
 *.pdf
+*.cmd
 
 !*.py

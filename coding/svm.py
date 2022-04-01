@@ -1,8 +1,9 @@
 import re
 import numpy as np
-from sklearn import datasets
+from sklearn import datasets, model_selection, metrics
 from sklearn.multiclass import OutputCodeClassifier
 from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
 import matplotlib.pyplot as plt
 from sklearn import svm, datasets
 
@@ -44,76 +45,115 @@ class SVM(object):
         for row in rows:
             self.X_test = np.append(self.X_test, np.array([np.array(row[:-1]).astype(float)]), axis = 0)
         
+    def mergeData(self, tar, new_list):
+        length = self.Y_train.__len__()
+        for i in range(length):
+            new_list.append(tar if (self.Y_train[i] == tar) else 3)
+
     def SVM(self):
         train_loss = 0
         test_loss = 0
         support_vectors = 0
-    
-        #########################
-        ## WRITE YOUR CODE HERE##
-        #########################    
+
+        w = []
+        b = []
+        SV_i = []
+        for i in range(3):
+            # i vs rest
+            tmp_Y_train = []
+            self.mergeData(i, tmp_Y_train)
+
+            mySVC = SVC(C=1e5, decision_function_shape="ovo", kernel="linear")
+            mySVC.fit(self.X_train, tmp_Y_train)
+
+            # See results after fitting?
+            w.append(np.asmatrix(mySVC.coef_))
+            b.append(mySVC.intercept_)
+            SV_i.append(mySVC.support_)
+
+
+        # te_x = np.array([[4.9, 3.0, 1.4, 0.2]])
+        # print(w*np.asmatrix(te_x).T)
+        # print(mySVC.predict(te_x))
         
-        return train_loss, test_loss, support_vectors
+        return w, b, SV_i, train_loss, test_loss, support_vectors
     
     def SVM_slack(C):
         train_loss = 0
         test_loss = 0
         support_vectors = 0
-    
+
+        w = []
+        b = []
+        SV_i = []    
         #########################
         ## WRITE YOUR CODE HERE##
         #########################    
         
-        return train_loss, test_loss, support_vectors
+        return w, b, SV_i, train_loss, test_loss, support_vectors
     
     def SVM_kernel_poly2(C):
         train_loss = 0
         test_loss = 0
         support_vectors = 0
-    
+
+        w = []
+        b = []
+        SV_i = []    
         #########################
         ## WRITE YOUR CODE HERE##
         #########################    
         
-        return train_loss, test_loss, support_vectors
+        return w, b, SV_i, train_loss, test_loss, support_vectors
     
     def SVM_kernel_poly3(C):
         train_loss = 0
         test_loss = 0
         support_vectors = 0
-    
+
+        w = []
+        b = []
+        SV_i = []    
         #########################
         ## WRITE YOUR CODE HERE##
         #########################    
         
-        return train_loss, test_loss, support_vectors
+        return w, b, SV_i, train_loss, test_loss, support_vectors
     
     def SVM_kernel_rbf(C):
         train_loss = 0
         test_loss = 0
         support_vectors = 0
-    
+
+        w = []
+        b = []
+        SV_i = []    
         #########################
         ## WRITE YOUR CODE HERE##
         #########################    
         
-        return train_loss, test_loss, support_vectors
+        return w, b, SV_i, train_loss, test_loss, support_vectors
     
     def SVM_kernel_sigmoid(C):
         train_loss = 0
         test_loss = 0
         support_vectors = 0
-    
+
+        w = []
+        b = []
+        SV_i = []    
         #########################
         ## WRITE YOUR CODE HERE##
         #########################    
         
-        return train_loss, test_loss, support_vectors
+        return w, b, SV_i, train_loss, test_loss, support_vectors
     
-svm = SVM("coding/train.txt", "coding/test.txt")#!!!!!!!!!!!!!!!!!!!!
-svm.read_data()
-f = open('coding/train.txt', 'r')
+mySvm = SVM("coding/train.txt", "coding/test.txt")#!!!!!!!!!!!!!!!!!!!!
+mySvm.read_data()
+mySvm.SVM()
+# f = open('coding/train.txt', 'r')
 # print(svm.Y_test)
+# print(mySvm.)
 
 
 #####################################
