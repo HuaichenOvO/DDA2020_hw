@@ -1,0 +1,3 @@
+# DDA-A2
+A repo for DDA2020 homework in CUHKSZ
+It simulates several SVM ML processes, including the classic SVM, SVM with slacks, SVM with poly2-kernel, poly3-kernel, RBF-kernel functions 
