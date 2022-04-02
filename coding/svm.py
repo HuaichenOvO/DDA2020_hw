@@ -7,6 +7,14 @@ from sklearn.svm import SVC
 import matplotlib.pyplot as plt
 from sklearn import svm, datasets
 
+def maxProb(a, b, c):
+    max = 0
+    if (b > max):
+        max = 1
+    if (c > max):
+        max = 2
+    return max
+
 class SVM(object):
 
     def __init__(self, training_dataset_, test_dataset_):
@@ -44,141 +52,351 @@ class SVM(object):
         f.close()
         for row in rows:
             self.X_test = np.append(self.X_test, np.array([np.array(row[:-1]).astype(float)]), axis = 0)
-        
+
     def changeLabel(self, tar, old_list, new_list):
         length = old_list.__len__()
         for i in range(length):
-            new_list.append(tar if (old_list[i] == tar) else 3)
+            new_list.append(1 if (old_list[i] == tar) else -1)
 
-    def SVM(self, slack_C):
-        acc_te = []
-        acc_tr = []
+    def get_err(self, SVCs):
+        err_tr = 0
+        err_te = 0
+        for i in range(120):
+            pass
+        for j in range(30):
+            pass
+        SVCs[0]
+        SVCs[1]
+        SVCs[2]
+        return err_tr, err_te
 
+    def SVM(self):
+        mySVC0 = SVC(C=1e5,decision_function_shape="ovo",kernel="linear")
+        mySVC1 = SVC(C=1e5,decision_function_shape="ovo",kernel="linear")
+        mySVC2 = SVC(C=1e5,decision_function_shape="ovo",kernel="linear")
+        mySVCs = [mySVC0, mySVC1, mySVC2]
+
+        # i vs rest
+        # See results after fitting?
         w = []
         b = []
         SV_i = []
 
         for i in range(3):
-            # i vs rest
             tmp_Y_train = []
             tmp_Y_test = []
             self.changeLabel(i, self.Y_train, tmp_Y_train)
             self.changeLabel(i, self.Y_test, tmp_Y_test)
+            mySVCs[i].fit(self.X_train, tmp_Y_train)
 
-            mySVC = SVC(C=slack_C,decision_function_shape="ovo",kernel="linear")
-            mySVC.fit(self.X_train, tmp_Y_train)
+            w.append(mySVCs[i].coef_)
+            b.append(mySVCs[i].intercept_)
+            SV_i.append(mySVCs[i].support_)            
 
-            # See results after fitting?
-            w.append(mySVC.coef_)
-            b.append(mySVC.intercept_)
-            SV_i.append(mySVC.support_)
+        # how to get train-loss and test-loss?
+        pred_tr = []
+        pred_te = []
+        err_tr = 0
+        err_te = 0
 
-            # how to get train-loss and test-loss?
-            acc_tr.append(mySVC.score(self.X_train, tmp_Y_train))
-            # print("train: ", acc_tr[i])
+        # for training data
+        for j in range(120):
+            x_j = np.array(self.X_train[j]).reshape(1, -1)
+            d0 = mySVCs[0].decision_function(x_j); d0 = d0[0]
+            d1 = mySVCs[1].decision_function(x_j); d1 = d1[0]
+            d2 = mySVCs[2].decision_function(x_j); d2 = d2[0]
+            pred_tr.append(maxProb(d0, d1, d2))
+        
+        for j_ in range(120):
+            if (pred_tr[j_] != self.Y_train[j_]):
+                err_tr += 1
+        err_tr = err_tr/120.0
 
-            acc_te.append(mySVC.score(self.X_test, tmp_Y_test))
-            # print("test: ", acc_te[i])
-
-        train_loss = 1
-        test_loss = 1
-        for i in range(3): 
-            train_loss -= acc_tr[i]/3.0 
-            test_loss -= acc_te[i]/3.0 
-            print("tr ", acc_tr[i])
-            print("te ", acc_tr[i])
-        # print("tr", train_loss)
-        # print("te", test_loss)
-
-        # open/create txt and write and close
+        # for training data
+        for k in range(30):
+            x_k = np.array([self.X_test[k]]).reshape(1, -1)
+            d0 = mySVCs[0].decision_function(x_k); d0 = d0[0]
+            d1 = mySVCs[1].decision_function(x_k); d1 = d1[0]
+            d2 = mySVCs[2].decision_function(x_k); d2 = d2[0]
+            pred_te.append(maxProb(d0, d1, d2))
+        
+        for k_ in range(30):
+            if (pred_te[k_] != self.Y_test[k_]):
+                err_te += 1
+        err_te = err_te/30.0
 
         # te_x = np.array([[4.9, 3.0, 1.4, 0.2]])
         # print(w*np.asmatrix(te_x).T)
         # print(mySVC.predict(te_x))
         
-        return w, b, SV_i, train_loss, test_loss
+        # print(err_tr)
+        # print(err_te)
+        # for i in range(3):
+        #     print(w[i], "\n", b[i])
+        return w, b, SV_i, err_tr, err_te
     
-    def SVM_slack(self):
-        train_loss = []
-        test_loss = []
-        acc_te = []
-        acc_tr = []
+    def SVM_slack(self, slack_C):
+        mySVC0 = SVC(slack_C,decision_function_shape="ovo",kernel="linear")
+        mySVC1 = SVC(slack_C,decision_function_shape="ovo",kernel="linear")
+        mySVC2 = SVC(slack_C,decision_function_shape="ovo",kernel="linear")
+        mySVCs = [mySVC0, mySVC1, mySVC2]
 
+        # i vs rest
+        # See results after fitting?
         w = []
         b = []
         SV_i = []
         for i in range(3):
-            # i vs rest
             tmp_Y_train = []
             tmp_Y_test = []
             self.changeLabel(i, self.Y_train, tmp_Y_train)
             self.changeLabel(i, self.Y_test, tmp_Y_test)
+            mySVCs[i].fit(self.X_train, tmp_Y_train)
 
-            for j in range(1,11):
-                pass
-                mySVC = SVC(C=0.1*j,decision_function_shape="ovo",kernel="linear") #decision_function_shape="ovo",  
+            w.append(mySVCs[i].coef_)
+            b.append(mySVCs[i].intercept_)
+            SV_i.append(mySVCs[i].support_)            
 
-                mySVC.fit(self.X_train, tmp_Y_train)
+        # how to get train-loss and test-loss?
+        pred_tr = []
+        pred_te = []
+        err_tr = 0
+        err_te = 0
 
-                # See results after fitting?
-                w.append(mySVC.coef_)
-                b.append(mySVC.intercept_)
-                SV_i.append(mySVC.support_)
-
-                # how to get train-loss and test-loss?
-                acc_tr.append(mySVC.score(self.X_train, tmp_Y_train))
-                # print("train: ", acc_tr[i])
-
-                acc_te.append(mySVC.score(self.X_test, tmp_Y_test))
-                # print("test: ", acc_te[i])
-
-            train_loss -= acc_tr[i]/3.0 
-            test_loss -= acc_te[i]/3.0 
-            print("tr", train_loss)
-            print("te", test_loss)   
+        # for training data
+        for j in range(10):
+            x_j = np.array([self.X_train[j]])
+            d0 = mySVCs[0].decision_function(x_j); d0 = d0[0]
+            d1 = mySVCs[1].decision_function(x_j); d1 = d1[0]
+            d2 = mySVCs[2].decision_function(x_j); d2 = d2[0]
+            pred_tr.append(maxProb(d0, d1, d2))
+            # print(pre_j)
         
-        return w, b, SV_i, train_loss, test_loss
-    
-    def SVM_kernel_poly2(self, slack_C):
-        train_loss = 0
-        test_loss = 0
+        for j_ in range(120):
+            if (pred_tr[j_] != self.Y_train[j_]):
+                err_tr += 1
+        err_tr = err_tr/120.0
 
-        w = []
+        # for training data
+        for k in range(30):
+            x_k = np.array([self.Y_test[k]])
+            d0 = mySVCs[0].decision_function(x_k); d0 = d0[0]
+            d1 = mySVCs[1].decision_function(x_k); d1 = d1[0]
+            d2 = mySVCs[2].decision_function(x_k); d2 = d2[0]
+            pred_te.append(maxProb(d0, d1, d2))
+            #print((d0, d1, d2))
+        
+        for k_ in range(30):
+            if (pred_te[k_] != self.Y_test[k_]):
+                err_te += 1
+        err_te = err_te/30.0
+
+        # te_x = np.array([[4.9, 3.0, 1.4, 0.2]])
+        # print(w*np.asmatrix(te_x).T)
+        # print(mySVC.predict(te_x))
+        
+        return w, b, SV_i, err_tr, err_te
+    
+    def SVM_kernel_poly2(self):
+        mySVC0 = SVC(C=1,decision_function_shape="ovo",kernel="poly",degree=2,gamma="auto") # sigma?
+        mySVC1 = SVC(C=1,decision_function_shape="ovo",kernel="poly",degree=2,gamma="auto")
+        mySVC2 = SVC(C=1,decision_function_shape="ovo",kernel="poly",degree=2,gamma="auto")
+        mySVCs = [mySVC0, mySVC1, mySVC2]
+
+        # i vs rest
+        # See results after fitting?
         b = []
-        SV_i = []    
-        #########################
-        ## WRITE YOUR CODE HERE##
-        #########################    
-        
-        return w, b, SV_i, train_loss, test_loss
-    
-    def SVM_kernel_poly3(self, slack_C):
-        train_loss = 0
-        test_loss = 0
+        SV_i = []
+        for i in range(3):
+            tmp_Y_train = []
+            tmp_Y_test = []
+            self.changeLabel(i, self.Y_train, tmp_Y_train)
+            self.changeLabel(i, self.Y_test, tmp_Y_test)
+            mySVCs[i].fit(self.X_train, tmp_Y_train)
 
-        w = []
-        b = []
-        SV_i = []    
-        #########################
-        ## WRITE YOUR CODE HERE##
-        #########################    
-        
-        return w, b, SV_i, train_loss, test_loss
-    
-    def SVM_kernel_rbf(self, slack_C):
-        train_loss = 0
-        test_loss = 0
+            b.append(mySVCs[i].intercept_)
+            SV_i.append(mySVCs[i].support_)
 
-        w = []
-        b = []
-        SV_i = []    
-        #########################
-        ## WRITE YOUR CODE HERE##
-        #########################    
+        # # how to get train-loss and test-loss?
+        pred_tr = []
+        pred_te = []
+        err_tr = 0
+        err_te = 0
+
+        # for training data
+        for j in range(120):
+            x_j = np.array([self.X_train[j]]).reshape(1,-1)
+            d0 = mySVCs[0].decision_function(x_j); d0 = d0[0]
+            d1 = mySVCs[1].decision_function(x_j); d1 = d1[0]
+            d2 = mySVCs[2].decision_function(x_j); d2 = d2[0]
+            pred_tr.append(maxProb(d0, d1, d2))
+            # print(pre_j)
         
-        return w, b, SV_i, train_loss, test_loss
+        for j_ in range(120):
+            if (pred_tr[j_] != self.Y_train[j_]):
+                err_tr += 1
+        err_tr = err_tr/120.0
+
+        # for training data
+        for k in range(30):
+            x_k = np.array([self.X_test[k]]).reshape(1,-1)
+            d0 = mySVCs[0].decision_function(x_k); d0 = d0[0]
+            d1 = mySVCs[1].decision_function(x_k); d1 = d1[0]
+            d2 = mySVCs[2].decision_function(x_k); d2 = d2[0]
+            pred_te.append(maxProb(d0, d1, d2))
+            #print((d0, d1, d2))
+        
+        for k_ in range(30):
+            if (pred_te[k_] != self.Y_test[k_]):
+                err_te += 1
+        err_te = err_te/30.0
+
+        print(err_tr)
+        print(err_te)
+        print(SV_i[0])
+        print(SV_i[1])
+        print(SV_i[2])
+        print(b)
+
+        # te_x = np.array([[4.9, 3.0, 1.4, 0.2]])
+        # print(w*np.asmatrix(te_x).T)
+        # print(mySVC.predict(te_x))
+        
+        return b, SV_i, err_tr, err_te
     
-    def SVM_kernel_sigmoid(self, slack_C):
+    def SVM_kernel_poly3(self):
+        mySVC0 = SVC(C=1,decision_function_shape="ovo",kernel="poly",degree=3,gamma="auto") # sigma?
+        mySVC1 = SVC(C=1,decision_function_shape="ovo",kernel="poly",degree=3,gamma="auto")
+        mySVC2 = SVC(C=1,decision_function_shape="ovo",kernel="poly",degree=3,gamma="auto")
+        mySVCs = [mySVC0, mySVC1, mySVC2]
+
+        # i vs rest
+        # See results after fitting?
+        b = []
+        SV_i = []
+        for i in range(3):
+            tmp_Y_train = []
+            tmp_Y_test = []
+            self.changeLabel(i, self.Y_train, tmp_Y_train)
+            self.changeLabel(i, self.Y_test, tmp_Y_test)
+            mySVCs[i].fit(self.X_train, tmp_Y_train)
+
+            b.append(mySVCs[i].intercept_)
+            SV_i.append(mySVCs[i].support_)
+
+        # # how to get train-loss and test-loss?
+        pred_tr = []
+        pred_te = []
+        err_tr = 0
+        err_te = 0
+
+        # for training data
+        for j in range(120):
+            x_j = np.array([self.X_train[j]]).reshape(1,-1)
+            d0 = mySVCs[0].decision_function(x_j); d0 = d0[0]
+            d1 = mySVCs[1].decision_function(x_j); d1 = d1[0]
+            d2 = mySVCs[2].decision_function(x_j); d2 = d2[0]
+            pred_tr.append(maxProb(d0, d1, d2))
+            # print(pre_j)
+        
+        for j_ in range(120):
+            if (pred_tr[j_] != self.Y_train[j_]):
+                err_tr += 1
+        err_tr = err_tr/120.0
+
+        # for training data
+        for k in range(30):
+            x_k = np.array([self.X_test[k]]).reshape(1,-1)
+            d0 = mySVCs[0].decision_function(x_k); d0 = d0[0]
+            d1 = mySVCs[1].decision_function(x_k); d1 = d1[0]
+            d2 = mySVCs[2].decision_function(x_k); d2 = d2[0]
+            pred_te.append(maxProb(d0, d1, d2))
+            #print((d0, d1, d2))
+        
+        for k_ in range(30):
+            if (pred_te[k_] != self.Y_test[k_]):
+                err_te += 1
+        err_te = err_te/30.0
+
+        print(err_tr)
+        print(err_te)
+        print(b)
+        print(SV_i[0])
+        print(SV_i[1])
+        print(SV_i[2])
+
+        # te_x = np.array([[4.9, 3.0, 1.4, 0.2]])
+        # print(w*np.asmatrix(te_x).T)
+        # print(mySVC.predict(te_x))
+        return b, SV_i, err_tr, err_te
+    
+    def SVM_kernel_rbf(self):
+        mySVC0 = SVC(decision_function_shape="ovo",kernel="rbf",gamma=0.5) # sigma^2 = 1/gamma 
+        mySVC1 = SVC(decision_function_shape="ovo",kernel="rbf",gamma=0.5)
+        mySVC2 = SVC(decision_function_shape="ovo",kernel="rbf",gamma=0.5)
+        mySVCs = [mySVC0, mySVC1, mySVC2]
+
+        # i vs rest
+        # See results after fitting?
+        b = []
+        SV_i = []
+        for i in range(3):
+            tmp_Y_train = []
+            tmp_Y_test = []
+            self.changeLabel(i, self.Y_train, tmp_Y_train)
+            self.changeLabel(i, self.Y_test, tmp_Y_test)
+            mySVCs[i].fit(self.X_train, tmp_Y_train)
+
+            b.append(mySVCs[i].intercept_)
+            SV_i.append(mySVCs[i].support_)
+
+        # # how to get train-loss and test-loss?
+        pred_tr = []
+        pred_te = []
+        err_tr = 0
+        err_te = 0
+
+        # for training data
+        for j in range(120):
+            x_j = np.array([self.X_train[j]]).reshape(1,-1)
+            d0 = mySVCs[0].decision_function(x_j); d0 = d0[0]
+            d1 = mySVCs[1].decision_function(x_j); d1 = d1[0]
+            d2 = mySVCs[2].decision_function(x_j); d2 = d2[0]
+            pred_tr.append(maxProb(d0, d1, d2))
+            # print(pre_j)
+        
+        for j_ in range(120):
+            if (pred_tr[j_] != self.Y_train[j_]):
+                err_tr += 1
+        err_tr = err_tr/120.0
+
+        # for training data
+        for k in range(30):
+            x_k = np.array([self.X_test[k]]).reshape(1,-1)
+            d0 = mySVCs[0].decision_function(x_k); d0 = d0[0]
+            d1 = mySVCs[1].decision_function(x_k); d1 = d1[0]
+            d2 = mySVCs[2].decision_function(x_k); d2 = d2[0]
+            pred_te.append(maxProb(d0, d1, d2))
+            #print((d0, d1, d2))
+        
+        for k_ in range(30):
+            if (pred_te[k_] != self.Y_test[k_]):
+                err_te += 1
+        err_te = err_te/30.0
+
+        print(err_tr)
+        print(err_te)
+        print(b)
+        print(SV_i[0])
+        print(SV_i[1])
+        print(SV_i[2])
+
+        # te_x = np.array([[4.9, 3.0, 1.4, 0.2]])
+        # print(w*np.asmatrix(te_x).T)
+        # print(mySVC.predict(te_x))
+        return b, SV_i, err_tr, err_te
+    
+    def SVM_kernel_sigmoid(self):
         train_loss = 0
         test_loss = 0
 
@@ -196,16 +414,15 @@ if __name__ =='__main__':
     mySvm = SVM("coding/train.txt", "coding/test.txt")#!!!!!!!!!!!!!!!!!!!!
     mySvm.read_data()
 
-    Slack_C = [1e5, (i for i in range(5))]
-    functions = [mySvm.SVM, mySvm.SVM_slack, mySvm.SVM_kernel_poly2, mySvm.SVM_kernel_poly3, mySvm.SVM_kernel_rbf, mySvm.SVM_kernel_sigmoid]
-    # for j in range(1):
-    #     list_W, list_b, list_SV_index, tr_loss, ts_loss = functions[j](Slack_C[j])
-
-
-    # mySvm.SVM(1e5)
-    mySvm.SVM_slack()
+    # mySvm.SVM()
+    for i in range(10):
+        pass
+        # mySvm.SVM_slack((i+1)*0.1)
+    # mySvm.SVM_kernel_poly2()
+    # mySvm.SVM_kernel_poly3()
+    mySvm.SVM_kernel_rbf()
         
-
+    # open/create txt and write and close
     # f = open('coding/train.txt', 'r')
     # print(svm.Y_test)
     # print(mySvm.)
