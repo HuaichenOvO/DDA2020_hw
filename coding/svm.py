@@ -45,15 +45,64 @@ class SVM(object):
         for row in rows:
             self.X_test = np.append(self.X_test, np.array([np.array(row[:-1]).astype(float)]), axis = 0)
         
-    def mergeData(self, tar, new_list):
-        length = self.Y_train.__len__()
+    def changeLabel(self, tar, old_list, new_list):
+        length = old_list.__len__()
         for i in range(length):
-            new_list.append(tar if (self.Y_train[i] == tar) else 3)
+            new_list.append(tar if (old_list[i] == tar) else 3)
 
-    def SVM(self):
-        train_loss = 0
-        test_loss = 0
-        support_vectors = 0
+    def SVM(self, slack_C):
+        acc_te = []
+        acc_tr = []
+
+        w = []
+        b = []
+        SV_i = []
+
+        for i in range(3):
+            # i vs rest
+            tmp_Y_train = []
+            tmp_Y_test = []
+            self.changeLabel(i, self.Y_train, tmp_Y_train)
+            self.changeLabel(i, self.Y_test, tmp_Y_test)
+
+            mySVC = SVC(C=slack_C,decision_function_shape="ovo",kernel="linear")
+            mySVC.fit(self.X_train, tmp_Y_train)
+
+            # See results after fitting?
+            w.append(mySVC.coef_)
+            b.append(mySVC.intercept_)
+            SV_i.append(mySVC.support_)
+
+            # how to get train-loss and test-loss?
+            acc_tr.append(mySVC.score(self.X_train, tmp_Y_train))
+            # print("train: ", acc_tr[i])
+
+            acc_te.append(mySVC.score(self.X_test, tmp_Y_test))
+            # print("test: ", acc_te[i])
+
+        train_loss = 1
+        test_loss = 1
+        for i in range(3): 
+            train_loss -= acc_tr[i]/3.0 
+            test_loss -= acc_te[i]/3.0 
+            print("tr ", acc_tr[i])
+            print("te ", acc_tr[i])
+        # print("tr", train_loss)
+        # print("te", test_loss)
+
+        # open/create txt and write and close
+
+        # te_x = np.array([[4.9, 3.0, 1.4, 0.2]])
+        # print(w*np.asmatrix(te_x).T)
+        # print(mySVC.predict(te_x))
+        
+        return w, b, SV_i, train_loss, test_loss
+    
+    def SVM_slack(self):
+        train_loss = []
+        test_loss = []
+        acc_te = []
+        acc_tr = []
 
         w = []
         b = []
@@ -61,27 +110,38 @@ class SVM(object):
         for i in range(3):
             # i vs rest
             tmp_Y_train = []
-            self.mergeData(i, tmp_Y_train)
+            tmp_Y_test = []
+            self.changeLabel(i, self.Y_train, tmp_Y_train)
+            self.changeLabel(i, self.Y_test, tmp_Y_test)
 
-            mySVC = SVC(C=1e5, decision_function_shape="ovo", kernel="linear")
-            mySVC.fit(self.X_train, tmp_Y_train)
+            for j in range(1,11):
+                pass
+                mySVC = SVC(C=0.1*j,decision_function_shape="ovo",kernel="linear") #decision_function_shape="ovo",  
 
-            # See results after fitting?
-            w.append(np.asmatrix(mySVC.coef_))
-            b.append(mySVC.intercept_)
-            SV_i.append(mySVC.support_)
+                mySVC.fit(self.X_train, tmp_Y_train)
 
+                # See results after fitting?
+                w.append(mySVC.coef_)
+                b.append(mySVC.intercept_)
+                SV_i.append(mySVC.support_)
 
-        # te_x = np.array([[4.9, 3.0, 1.4, 0.2]])
-        # print(w*np.asmatrix(te_x).T)
-        # print(mySVC.predict(te_x))
+                # how to get train-loss and test-loss?
+                acc_tr.append(mySVC.score(self.X_train, tmp_Y_train))
+                # print("train: ", acc_tr[i])
+
+                acc_te.append(mySVC.score(self.X_test, tmp_Y_test))
+                # print("test: ", acc_te[i])
+
+            train_loss -= acc_tr[i]/3.0 
+            test_loss -= acc_te[i]/3.0 
+            print("tr", train_loss)
+            print("te", test_loss)   
         
-        return w, b, SV_i, train_loss, test_loss, support_vectors
+        return w, b, SV_i, train_loss, test_loss
     
-    def SVM_slack(C):
+    def SVM_kernel_poly2(self, slack_C):
         train_loss = 0
         test_loss = 0
-        support_vectors = 0
 
         w = []
         b = []
@@ -90,12 +150,11 @@ class SVM(object):
         ## WRITE YOUR CODE HERE##
         #########################    
         
-        return w, b, SV_i, train_loss, test_loss, support_vectors
+        return w, b, SV_i, train_loss, test_loss
     
-    def SVM_kernel_poly2(C):
+    def SVM_kernel_poly3(self, slack_C):
         train_loss = 0
         test_loss = 0
-        support_vectors = 0
 
         w = []
         b = []
@@ -104,12 +163,11 @@ class SVM(object):
         ## WRITE YOUR CODE HERE##
         #########################    
         
-        return w, b, SV_i, train_loss, test_loss, support_vectors
+        return w, b, SV_i, train_loss, test_loss
     
-    def SVM_kernel_poly3(C):
+    def SVM_kernel_rbf(self, slack_C):
         train_loss = 0
         test_loss = 0
-        support_vectors = 0
 
         w = []
         b = []
@@ -118,12 +176,11 @@ class SVM(object):
         ## WRITE YOUR CODE HERE##
         #########################    
         
-        return w, b, SV_i, train_loss, test_loss, support_vectors
+        return w, b, SV_i, train_loss, test_loss
     
-    def SVM_kernel_rbf(C):
+    def SVM_kernel_sigmoid(self, slack_C):
         train_loss = 0
         test_loss = 0
-        support_vectors = 0
 
         w = []
         b = []
@@ -132,30 +189,28 @@ class SVM(object):
         ## WRITE YOUR CODE HERE##
         #########################    
         
-        return w, b, SV_i, train_loss, test_loss, support_vectors
+        return w, b, SV_i, train_loss, test_loss
     
-    def SVM_kernel_sigmoid(C):
-        train_loss = 0
-        test_loss = 0
-        support_vectors = 0
+if __name__ =='__main__':
+            
+    mySvm = SVM("coding/train.txt", "coding/test.txt")#!!!!!!!!!!!!!!!!!!!!
+    mySvm.read_data()
 
-        w = []
-        b = []
-        SV_i = []    
-        #########################
-        ## WRITE YOUR CODE HERE##
-        #########################    
+    Slack_C = [1e5, (i for i in range(5))]
+    functions = [mySvm.SVM, mySvm.SVM_slack, mySvm.SVM_kernel_poly2, mySvm.SVM_kernel_poly3, mySvm.SVM_kernel_rbf, mySvm.SVM_kernel_sigmoid]
+    # for j in range(1):
+    #     list_W, list_b, list_SV_index, tr_loss, ts_loss = functions[j](Slack_C[j])
+
+
+    # mySvm.SVM(1e5)
+    mySvm.SVM_slack()
         
-        return w, b, SV_i, train_loss, test_loss, support_vectors
-    
-mySvm = SVM("coding/train.txt", "coding/test.txt")#!!!!!!!!!!!!!!!!!!!!
-mySvm.read_data()
-mySvm.SVM()
-# f = open('coding/train.txt', 'r')
-# print(svm.Y_test)
-# print(mySvm.)
+
+    # f = open('coding/train.txt', 'r')
+    # print(svm.Y_test)
+    # print(mySvm.)
 
 
-#####################################
-## Call different SVM with value C ##
-#####################################
+    #####################################
+    ## Call different SVM with value C ##
+    #####################################
