@@ -105,8 +105,8 @@ class SVM(object):
                 err_te += 1
         err_te = err_te/30.0
 
-        # print(pred_tr)
-        # print(pred_te)
+        print(pred_tr)
+        print(pred_te)
         
         # te_x = np.array([[4.9, 3.0, 1.4, 0.2]])
         # print(w*np.asmatrix(te_x).T)
@@ -266,10 +266,10 @@ if __name__ =='__main__':
     mySvm.read_data()
 
     mySvm.SVM()
-    for i in range(10):
-        mySvm.SVM_slack((i+1)*0.1)
-    mySvm.SVM_kernel_poly2()
-    mySvm.SVM_kernel_poly3()
-    mySvm.SVM_kernel_rbf()
-    mySvm.SVM_kernel_sigmoid()
+    # for i in range(10):
+    #     mySvm.SVM_slack((i+1)*0.1)
+    # mySvm.SVM_kernel_poly2()
+    # mySvm.SVM_kernel_poly3()
+    # mySvm.SVM_kernel_rbf()
+    # mySvm.SVM_kernel_sigmoid()
         

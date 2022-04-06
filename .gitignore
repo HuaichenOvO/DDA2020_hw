@@ -1,8 +1,11 @@
 /venv/
-/prob/
+/*/prob/
+/*/sub/
+/HW2/coding/.ipynb_checkpoints
 
 *.pdf
 *.cmd
+test.py
 
-/coding/test.py
-!/coding/svm.py
+!/HW1/coding/A1_119010176.py
+!/HW2/coding/svm.py
